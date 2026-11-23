@@ -1,20 +1,29 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
+import type { CookieSerializeOptions } from "cookie";
 
-// Dipakai di Server Component / Route Handler / Server Action.
 export async function createClient() {
   const store = await cookies();
+
   return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
         getAll: () => store.getAll(),
-        setAll: (list) => {
+        setAll: (
+          list: {
+            name: string;
+            value: string;
+            options: CookieSerializeOptions;
+          }[]
+        ) => {
           try {
-            list.forEach(({ name, value, options }) => store.set(name, value, options));
+            list.forEach(({ name, value, options }) =>
+              store.set(name, value, options)
+            );
           } catch {
-            // dipanggil dari Server Component: abaikan, middleware yang refresh sesi
+            // Middleware menangani refresh sesi.
           }
         },
       },
