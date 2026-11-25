@@ -32,6 +32,16 @@ export async function createPost(_: R, fd: FormData): Promise<R> {
   const body = clean(fd.get("body"), 5000);
   if (title.length < 3) return { error: "Judul minimal 3 karakter." };
   if (!body) return { error: "Isi post tidak boleh kosong." };
+  const photo = fd.get("photo");
+  const photoFile = photo instanceof File && photo.size > 0 ? photo : null;
+  const stickerId = String(fd.get("sticker_id") ?? "");
+  if (stickerId && !UUID_RE.test(stickerId)) return { error: "Stiker tidak valid." };
+  if (photoFile && !["image/jpeg", "image/png", "image/webp"].includes(photoFile.type)) return { error: "Format foto harus JPG, PNG, atau WebP." };
+  if (photoFile && photoFile.size > 5 * 1024 * 1024) return { error: "Ukuran foto maksimal 5 MB." };
+  if (stickerId) {
+    const { data: sticker } = await c.sb.from("chapter_stickers").select("id").eq("id", stickerId).eq("is_active", true).maybeSingle();
+    if (!sticker) return { error: "Stiker tidak tersedia." };
+  }
   const comicId = String(fd.get("comic_id") ?? "");
   if (comicId && !UUID_RE.test(comicId)) return { error: "Komik tidak valid." };
 
@@ -42,17 +52,29 @@ export async function createPost(_: R, fd: FormData): Promise<R> {
     if (options.length < 2 || options.length > 6) return { error: "Polling butuh 2 sampai 6 opsi yang berbeda." };
   }
 
+  let photoPath: string | null = null;
+  if (photoFile) {
+    const ext = photoFile.type === "image/png" ? "png" : photoFile.type === "image/webp" ? "webp" : "jpg";
+    photoPath = `${c.uid}/${Date.now()}.${ext}`;
+    const { error: uploadError } = await c.sb.storage.from("community-post-photos").upload(photoPath, photoFile, { contentType: photoFile.type });
+    if (uploadError) return { error: msg(uploadError) };
+  }
+
   const { data, error } = await c.sb
     .from("posts")
-    .insert({ user_id: c.uid, category, title, body, comic_id: comicId || null, has_spoiler: category === "spoiler" || fd.get("spoiler") === "on" })
+    .insert({ user_id: c.uid, category, title, body, photo_path: photoPath, sticker_id: stickerId || null, comic_id: comicId || null, has_spoiler: category === "spoiler" || fd.get("spoiler") === "on" })
     .select("id")
     .single();
-  if (error || !data) return { error: msg(error ?? { message: "tidak diketahui" }) };
+  if (error || !data) {
+    if (photoPath) await c.sb.storage.from("community-post-photos").remove([photoPath]);
+    return { error: msg(error ?? { message: "tidak diketahui" }) };
+  }
 
   if (options.length) {
     const { error: oe } = await c.sb.from("poll_options").insert(options.map((label) => ({ post_id: data.id, label })));
     if (oe) {
       await c.sb.from("posts").delete().eq("id", data.id);
+      if (photoPath) await c.sb.storage.from("community-post-photos").remove([photoPath]);
       return { error: msg(oe) };
     }
   }
@@ -155,11 +177,26 @@ export async function saveReview(_: R, fd: FormData): Promise<R> {
   const body = clean(fd.get("body"), 3000);
   if (!UUID_RE.test(comicId)) return { error: "Pilih komik yang mau direview." };
   if (!Number.isInteger(rating) || rating < 1 || rating > 5) return { error: "Beri rating 1 sampai 5." };
+
+  const { data: comic, error: comicError } = await c.sb
+    .from("comics")
+    .select("slug")
+    .eq("id", comicId)
+    .maybeSingle();
+
+  if (comicError || !comic?.slug) return { error: "Komik tidak ditemukan." };
   const { error } = await c.sb.from("reviews").upsert(
     { comic_id: comicId, user_id: c.uid, rating, body: body || null, has_spoiler: fd.get("spoiler") === "on" },
     { onConflict: "comic_id,user_id" }
   );
   if (error) return { error: msg(error) };
+
   revalidatePath("/komunitas");
+  revalidatePath(`/komik/${comic.slug}`);
+
+  if (fd.get("return_to") === "detail") {
+    redirect(`/komik/${comic.slug}`);
+  }
+
   redirect("/komunitas?cat=review");
 }

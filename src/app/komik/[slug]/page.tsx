@@ -4,8 +4,11 @@ import { notFound } from "next/navigation";
 import ChapterList from "@/components/ChapterList";
 import ComicActions from "@/components/ComicActions";
 import Cover from "@/components/Cover";
+import DetailReviewForm from "@/components/community/DetailReviewForm";
+import ComicReviewList from "@/components/community/ComicReviewList";
+import { getCurrentUser } from "@/lib/auth";
 import { IconBookmark, IconChevronLeft, IconStar } from "@/components/Icons";
-import { getChapters, getComicBySlug } from "@/lib/comics";
+import { getChapters, getComicBySlug, getComicReviews } from "@/lib/comics";
 import { STATUS_LABEL, TYPE_LABEL } from "@/lib/types";
 
 type Props = { params: Promise<{ slug: string }> };
@@ -18,7 +21,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function DetailPage({ params }: Props) {
   const comic = await getComicBySlug((await params).slug);
   if (!comic) notFound();
-  const chapters = await getChapters(comic.id);
+  const [chapters, me, reviews] = await Promise.all([
+    getChapters(comic.id),
+    getCurrentUser(),
+    getComicReviews(comic.id),
+  ]);
 
   return (
     <article>
@@ -59,6 +66,25 @@ export default async function DetailPage({ params }: Props) {
       </div>
 
       <ComicActions comicId={comic.id} title={comic.title} slug={comic.slug} firstChapter={chapters.at(-1)?.number ?? null} />
+
+      <section className="my-6">
+        <h2 className="text-xl font-bold">Beri Rating</h2>
+        {me ? (
+          <DetailReviewForm comicId={comic.id} />
+        ) : (
+          <div className="mt-3 rounded-2xl border border-line bg-card p-4">
+            <p className="text-sm text-mute">Login dulu untuk memberi rating dan review.</p>
+            <Link href={`/login?next=/komik/${comic.slug}`} className="mt-3 inline-flex rounded-2xl bg-brand px-5 py-2 text-sm font-bold">
+              Masuk
+            </Link>
+          </div>
+        )}
+      </section>
+
+      <section className="my-6">
+        <h2 className="text-xl font-bold">Ulasan Pembaca ({comic.rating_count})</h2>
+        <ComicReviewList reviews={reviews} />
+      </section>
 
       <details className="group text-sm text-[#d0d0d0]">
         <summary className="cursor-pointer list-none">

@@ -73,7 +73,7 @@ export default async function ProfilPage() {
         {p?.role && p.role !== "user" && (
           <span className="inline-block rounded-[10px] bg-gold px-2.5 py-0.5 text-[11px] font-extrabold text-black">{ROLE[p.role]}</span>
         )}
-        <RankBadge level={p?.rank_level} />
+        <RankBadge level={p?.rank_level} role={p?.role} />
       </div>
       {(p?.role === "admin" || p?.role === "moderator") && <Link href="/admin" className="mt-3 inline-block rounded-3xl bg-brand px-5 py-2 text-[13px] font-bold">Buka dashboard</Link>}
 

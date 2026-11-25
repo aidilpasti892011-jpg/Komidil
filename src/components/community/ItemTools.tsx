@@ -23,7 +23,7 @@ export default function ItemTools(p: {
           {p.type === "post" && <button className={btn} disabled={pending} onClick={() => mod(p.locked ? "unlock" : "lock")}>{p.locked ? "Buka kunci" : "Kunci"}</button>}
         </>
       )}
-      {p.canDelete && (
+      {(p.canDelete || p.admin) && (
         <button className={`${btn} text-[#ff6b70]`} disabled={pending}
           onClick={() => confirm("Hapus permanen?") && run(() => removeItem(p.type, p.id, p.back))}>Hapus</button>
       )}

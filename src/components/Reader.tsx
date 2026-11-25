@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { IconChevronLeft, IconChevronRight, IconSliders } from "./Icons";
 import ReaderSettingsSheet from "./ReaderSettings";
+import ChapterComments from "@/components/ChapterComments";
 import { createClient } from "@/lib/supabase/client";
 import type { ReaderImage } from "@/lib/comics";
 import {
@@ -643,6 +644,7 @@ export default function Reader({ comicId, slug, title, chapters, current, images
                 );
               })}
               {endPanel}
+              <ChapterComments chapterId={current.id} />
               <div aria-hidden="true" className="h-[calc(30px+env(safe-area-inset-bottom))]" />
             </>
           ) : slide < n ? (
@@ -663,7 +665,10 @@ export default function Reader({ comicId, slug, title, chapters, current, images
               )}
             </div>
           ) : (
-            <div className="grid min-h-[100dvh] place-items-center">{endPanel}</div>
+            <>
+              <div className="grid min-h-[100dvh] place-items-center">{endPanel}</div>
+              <ChapterComments chapterId={current.id} />
+            </>
           )}
         </div>
       )}

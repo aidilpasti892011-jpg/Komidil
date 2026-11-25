@@ -35,9 +35,19 @@ export function clean(s: unknown, max: number): string {
     .slice(0, max);
 }
 
-export type Author = { username: string; display_name: string | null; avatar_url: string | null; role: "user" | "moderator" | "admin"; rank_level?: number | null };
+export type Author = {
+  id?: string;
+  username: string;
+  display_name: string | null;
+  avatar_url: string | null;
+  bio?: string | null;
+  role: "user" | "moderator" | "admin";
+  xp?: number;
+  rank_level?: number | null;
+  created_at?: string;
+};
 export type PostRow = {
-  id: string; category: string; title: string; body: string; has_spoiler: boolean;
+  id: string; category: string; title: string; body: string | null; photo_path: string | null; sticker_id: string | null; has_spoiler: boolean;
   is_pinned: boolean; is_locked: boolean; is_hidden: boolean; like_count: number; comment_count: number;
   created_at: string; user_id: string; profiles: Author | null; comics: { title: string; slug: string } | null;
 };
@@ -50,6 +60,6 @@ export type ReviewRow = {
   created_at: string; user_id: string; profiles: Author | null; comics: { title: string; slug: string } | null;
 };
 export const POST_SELECT =
-  "id,category,title,body,has_spoiler,is_pinned,is_locked,is_hidden,like_count,comment_count,created_at,user_id,profiles(username,display_name,avatar_url,role,rank_level),comics(title,slug)";
+  "id,category,title,body,photo_path,sticker_id,has_spoiler,is_pinned,is_locked,is_hidden,like_count,comment_count,created_at,user_id,profiles:profiles!posts_user_id_fkey(username,display_name,avatar_url,bio,role,rank_level),comics(title,slug)";
 export const REVIEW_SELECT =
-  "id,rating,body,has_spoiler,is_hidden,like_count,created_at,user_id,profiles(username,display_name,avatar_url,role,rank_level),comics(title,slug)";
+  "id,rating,body,has_spoiler,is_hidden,like_count,created_at,user_id,profiles(username,display_name,avatar_url,bio,role,rank_level),comics(title,slug)";

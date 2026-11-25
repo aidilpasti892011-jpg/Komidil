@@ -27,14 +27,29 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
   if (!post) notFound();
 
   const me = await getCurrentUser();
-  const staff = me?.profile?.role === "admin" || me?.profile?.role === "moderator";
+  const staff = me?.profile?.role === "admin";
   const admin = me?.profile?.role === "admin";
   if (post.is_hidden && !staff && me?.id !== post.user_id) notFound();
   const path = `/komunitas/${id}`;
+  let photoUrl: string | null = null;
+  let stickerUrl: string | null = null;
+  let stickerName = "";
+  if (post.photo_path) {
+    const { data: photo } = await sb.storage.from("community-post-photos").createSignedUrl(post.photo_path, 3600);
+    photoUrl = photo?.signedUrl ?? null;
+  }
+  if (post.sticker_id) {
+    const { data: sticker } = await sb.from("chapter_stickers").select("name,image_path").eq("id", post.sticker_id).maybeSingle();
+    if (sticker) {
+      stickerName = sticker.name;
+      stickerUrl = sb.storage.from("stickers").getPublicUrl(sticker.image_path).data.publicUrl;
+    }
+  }
+
 
   const { data: cm } = await sb
     .from("comments")
-    .select("id,post_id,user_id,parent_id,body,is_hidden,like_count,created_at,profiles(username,display_name,avatar_url,role,rank_level)")
+    .select("id,post_id,user_id,parent_id,body,is_hidden,like_count,created_at,profiles(id,username,display_name,avatar_url,bio,role,xp,rank_level,created_at)")
     .eq("post_id", id).order("created_at").limit(300);
   const comments = (cm as unknown as CommentRow[]) ?? [];
 
@@ -74,13 +89,15 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
         <Avatar a={post.profiles} size={30} />
         <b>{post.profiles?.display_name || post.profiles?.username || "Pengguna"}</b>
         <RoleBadge role={post.profiles?.role} />
-        <RankBadge level={post.profiles?.rank_level} />
+        <RankBadge level={post.profiles?.rank_level} role={post.profiles?.role} />
         <span className="text-mute">{timeAgo(post.created_at)}</span>
       </div>
       {post.comics && <Link href={`/komik/${post.comics.slug}`} className="mb-3 inline-block rounded-full bg-card px-3 py-1 text-[13px] text-gold">{post.comics.title}</Link>}
 
       <SpoilerBox spoiler={post.has_spoiler}>
-        <p className="whitespace-pre-wrap break-words text-[15px] leading-relaxed text-[#ddd]">{post.body}</p>
+        {post.body && <p className="whitespace-pre-wrap break-words text-[15px] leading-relaxed text-[#ddd]">{post.body}</p>}
+        {photoUrl && <img src={photoUrl} alt="Foto postingan" className="mt-3 max-h-[520px] w-full rounded-xl object-contain" />}
+        {stickerUrl && <div className="mt-3"><img src={stickerUrl} alt={stickerName} className="h-36 w-36 object-contain" /></div>}
       </SpoilerBox>
 
       {post.category === "polling" && options.length > 0 && (

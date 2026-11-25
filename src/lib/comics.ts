@@ -164,6 +164,41 @@ export async function getComicBySlug(slug: string): Promise<ComicDetail | null> 
   }
 }
 
+export type ComicReview = {
+  id: string;
+  rating: number;
+  body: string | null;
+  has_spoiler: boolean;
+  created_at: string;
+  profiles: {
+    username: string;
+    display_name: string | null;
+    avatar_url: string | null;
+  } | null;
+};
+
+export async function getComicReviews(comicId: string): Promise<ComicReview[]> {
+  if (!hasSupabaseEnv()) return [];
+  try {
+    const sb = await createClient();
+    const { data, error } = await sb
+      .from("reviews")
+      .select("id,rating,body,has_spoiler,created_at,profiles(username,display_name,avatar_url)")
+      .eq("comic_id", comicId)
+      .eq("is_hidden", false)
+      .order("created_at", { ascending: false })
+      .limit(30);
+
+    if (error) {
+      console.error("Gagal mengambil ulasan:", error.message);
+      return [];
+    }
+    return (data ?? []) as unknown as ComicReview[];
+  } catch {
+    return [];
+  }
+}
+
 export async function getChapters(comicId: string): Promise<ChapterRow[]> {
   if (!hasSupabaseEnv()) return [];
   try {

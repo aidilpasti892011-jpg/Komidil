@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
 import { hasSupabaseEnv } from "@/lib/utils";
 
@@ -13,7 +14,7 @@ export type Profile = {
   created_at: string;
 };
 
-export async function getCurrentUser(): Promise<{ id: string; email: string | null; profile: Profile | null } | null> {
+export const getCurrentUser = cache(async (): Promise<{ id: string; email: string | null; profile: Profile | null } | null> => {
   if (!hasSupabaseEnv()) return null;
   const sb = await createClient();
   const { data } = await sb.auth.getUser();
@@ -24,4 +25,4 @@ export async function getCurrentUser(): Promise<{ id: string; email: string | nu
     .eq("id", data.user.id)
     .maybeSingle();
   return { id: data.user.id, email: data.user.email ?? null, profile: (p as Profile | null) ?? null };
-}
+});

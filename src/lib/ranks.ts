@@ -9,12 +9,16 @@ export type RankInfo = {
 };
 
 export const RANKS: RankInfo[] = [
-  { level: 0, name: "New Reader", min: 0, tone: "bg-line text-mute" },
-  { level: 1, name: "Reader", min: 100, tone: "bg-[#2e2e2e] text-white" },
-  { level: 2, name: "Active Reader", min: 400, tone: "bg-[#2a2209] text-gold" },
-  { level: 3, name: "Dedicated Reader", min: 1200, tone: "bg-gold text-black" },
-  { level: 4, name: "Elite Reader", min: 3500, tone: "bg-brand text-white" },
-  { level: 5, name: "Legendary Reader", min: 10000, tone: "bg-gradient-to-r from-brand to-gold text-black" },
+  { level: 0, name: "Culun", min: 0, tone: "bg-line text-mute" },
+  { level: 1, name: "Pemula", min: 100, tone: "bg-[#2e2e2e] text-white" },
+  { level: 2, name: "Pendatang", min: 300, tone: "bg-[#164e63] text-cyan-100" },
+  { level: 3, name: "Aktif", min: 700, tone: "bg-blue-900 text-blue-100" },
+  { level: 4, name: "Terkenal", min: 1500, tone: "bg-purple-900 text-purple-100" },
+  { level: 5, name: "Veteran", min: 3000, tone: "bg-slate-600 text-white" },
+  { level: 6, name: "Elite", min: 5000, tone: "bg-yellow-700 text-yellow-100" },
+  { level: 7, name: "Legenda", min: 8000, tone: "bg-gradient-to-r from-purple-700 to-yellow-500 text-white" },
+  { level: 8, name: "Hunter", min: 15000, tone: "bg-red-900 text-red-100" },
+  { level: 9, name: "Sepuh", min: 30000, tone: "bg-gradient-to-r from-yellow-500 to-amber-200 text-black" },
 ];
 
 /** Batas total XP per hari (semua jenis). Samakan dengan day_cap di award_xp(). */

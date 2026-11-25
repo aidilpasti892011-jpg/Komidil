@@ -1,17 +1,44 @@
 import { rankByLevel } from "@/lib/ranks";
 
-/** Badge rank pembaca. level berasal dari kolom profiles.rank_level (dihitung database). */
-export default function RankBadge({ level, className = "" }: { level?: number | null; className?: string }) {
-  const r = rankByLevel(level);
+const RANK_LOGOS = [
+  "01-culun.png",
+  "02-pemula.png",
+  "03-pendatang.png",
+  "04-aktif.png",
+  "05-terkenal.png",
+  "06-veteran.png",
+  "07-elite.png",
+  "08-legenda.png",
+  "09-hunter.png",
+  "10-sepuh.png",
+];
+
+export default function RankBadge({
+  level,
+  role,
+  className = "",
+}: {
+  level?: number | null;
+  role?: string | null;
+  className?: string;
+}) {
+  const r = rankByLevel(role === "admin" ? 9 : level);
+
   return (
     <span
-      title={`${r.name} (level ${r.level + 1})`}
-      className={`inline-flex items-center gap-1 whitespace-nowrap rounded-md px-1.5 py-px text-[10px] font-bold ${r.tone} ${className}`}
+      title={`${r.name} (Level ${r.level + 1})`}
+      className={`inline-flex items-center gap-1 whitespace-nowrap ${className}`}
     >
-      <svg width="9" height="9" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-        <path d="m12 2.5 2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9z" />
-      </svg>
-      {r.name}
+      <img
+        src={`/images/ranks/${RANK_LOGOS[r.level]}`}
+        alt={`Rank ${r.name}`}
+        width={24}
+        height={24}
+        className="h-6 w-6 object-contain"
+      />
+      <span className={`rounded-md px-1.5 py-px text-[10px] font-bold ${r.tone}`}>
+        {r.name}
+      </span>
     </span>
   );
 }

@@ -21,13 +21,14 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ c
   }
   const sb = await createClient();
   const { data } = await sb.from("comics").select("id,title").eq("is_published", true).order("title").limit(300);
+  const { data: stickerRows } = await sb.from("chapter_stickers").select("id,name,image_path").eq("is_active", true).order("created_at", { ascending: false }).limit(100);
   const sp = await searchParams;
   const admin = me.profile?.role === "admin";
   return (
     <div className="mx-auto my-4 max-w-[560px]">
       <Link href="/komunitas" className="text-[13px] text-mute">Kembali</Link>
       <h1 className="mb-4 mt-2 text-[26px] font-bold">Buat post</h1>
-      <PostForm comics={data ?? []} admin={admin} initialCat={sp.cat ?? "diskusi"} />
+      <PostForm comics={data ?? []} stickers={stickerRows ?? []} admin={admin} initialCat={sp.cat ?? "diskusi"} />
     </div>
   );
 }

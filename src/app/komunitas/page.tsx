@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import EmptyState from "@/components/EmptyState";
 import RankBadge from "@/components/RankBadge";
-import Avatar, { RoleBadge } from "@/components/community/Avatar";
+import { RoleBadge } from "@/components/community/Avatar";
+import ProfileTrigger from "@/components/community/ProfileTrigger";
 import ItemTools from "@/components/community/ItemTools";
 import LikeButton from "@/components/community/LikeButton";
 import ReportButton from "@/components/community/ReportButton";
@@ -52,6 +53,32 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ c
   posts = posts.slice(0, PER);
   reviews = reviews.slice(0, PER);
 
+  const photoUrls = new Map<string, string>();
+  const stickerUrls = new Map<string, { url: string; name: string }>();
+
+  await Promise.all(posts.map(async (post) => {
+    if (!post.photo_path) return;
+    const { data } = await sb.storage
+      .from("community-post-photos")
+      .createSignedUrl(post.photo_path, 3600);
+    if (data?.signedUrl) photoUrls.set(post.id, data.signedUrl);
+  }));
+
+  const stickerIds = [...new Set(posts.flatMap((post) => post.sticker_id ? [post.sticker_id] : []))];
+  if (stickerIds.length) {
+    const { data: stickerRows } = await sb
+      .from("chapter_stickers")
+      .select("id,name,image_path")
+      .in("id", stickerIds);
+
+    for (const sticker of stickerRows ?? []) {
+      stickerUrls.set(sticker.id, {
+        url: sb.storage.from("stickers").getPublicUrl(sticker.image_path).data.publicUrl,
+        name: sticker.name,
+      });
+    }
+  }
+
   if (me) {
     const ids = [...posts.map((p) => p.id), ...reviews.map((r) => r.id)];
     if (ids.length) {
@@ -83,10 +110,9 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ c
         {posts.map((p) => (
           <li key={p.id} className="rounded-2xl border border-line bg-card p-4">
             <div className="mb-2 flex items-center gap-2 text-[13px]">
-              <Avatar a={p.profiles} size={28} />
-              <b>{p.profiles?.display_name || p.profiles?.username || "Pengguna"}</b>
+              <ProfileTrigger author={p.profiles} size={28} />
               <RoleBadge role={p.profiles?.role} />
-              <RankBadge level={p.profiles?.rank_level} />
+              <RankBadge level={p.profiles?.rank_level} role={p.profiles?.role} />
               <span className="text-mute">{timeAgo(p.created_at)}</span>
             </div>
             <div className="mb-1.5 flex flex-wrap gap-1.5 text-[11px]">
@@ -100,21 +126,35 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ c
             <Link href={`/komunitas/${p.id}`} className="block">
               <h2 className="text-[17px] font-bold leading-snug">{p.title}</h2>
               {!p.has_spoiler && <p className="mt-1 line-clamp-2 whitespace-pre-line break-words text-[14px] text-[#bbb]">{p.body}</p>}
+              {photoUrls.get(p.id) && (
+                <img
+                  src={photoUrls.get(p.id)!}
+                  alt="Foto postingan"
+                  className="mt-3 max-h-[420px] w-full rounded-xl object-contain"
+                />
+              )}
+              {p.sticker_id && stickerUrls.get(p.sticker_id) && (
+                <img
+                  src={stickerUrls.get(p.sticker_id)!.url}
+                  alt={stickerUrls.get(p.sticker_id)!.name}
+                  className="mt-3 h-32 w-32 object-contain"
+                />
+              )}
             </Link>
             <div className="-ml-2 mt-2 flex items-center text-[13px] text-mute">
               <LikeButton type="post" id={p.id} liked={liked.has(p.id)} count={p.like_count} loggedIn={Boolean(me)} next={path} />
               <Link href={`/komunitas/${p.id}`} className="px-2.5 py-1">{p.comment_count} komentar</Link>
             </div>
+            <ItemTools type="post" id={p.id} canDelete={me?.id === p.user_id} admin={admin} hidden={p.is_hidden} pinned={p.is_pinned} locked={p.is_locked} back="/komunitas" />
           </li>
         ))}
 
         {reviews.map((r) => (
           <li key={r.id} className="rounded-2xl border border-line bg-card p-4">
             <div className="mb-2 flex items-center gap-2 text-[13px]">
-              <Avatar a={r.profiles} size={28} />
-              <b>{r.profiles?.display_name || r.profiles?.username || "Pengguna"}</b>
+              <ProfileTrigger author={r.profiles} size={28} />
               <RoleBadge role={r.profiles?.role} />
-              <RankBadge level={r.profiles?.rank_level} />
+              <RankBadge level={r.profiles?.rank_level} role={r.profiles?.role} />
               <span className="text-mute">{timeAgo(r.created_at)}</span>
               {r.is_hidden && <span className="rounded-md bg-brand/30 px-2 text-[10px] text-[#ff9a9d]">Disembunyikan</span>}
             </div>

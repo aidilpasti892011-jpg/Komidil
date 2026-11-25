@@ -16,7 +16,7 @@ export const STORAGE_KEY = "kd_reader_v1";
 
 export const DEFAULT_SETTINGS: ReaderSettings = {
   mode: "scroll",
-  width: "medium",
+  width: "full",
   brightness: 100,
   autoNext: false,
   rtl: false,
