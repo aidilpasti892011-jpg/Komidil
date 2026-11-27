@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 import ContinueReading from "@/components/ContinueReading";
@@ -11,6 +12,11 @@ import SectionHeader from "@/components/SectionHeader";
 import { getSchedule, wibDay } from "@/lib/schedule";
 import { getComics, getRankings } from "@/lib/comics";
 import { COMIC_TYPES, PERIODS, TYPE_LABEL, type Period, type RankedComic } from "@/lib/types";
+
+export const metadata: Metadata = {
+  title: "Baca Komik Online, Manhwa, Manhua & Manga Terbaru",
+  description: "KOMIDIL adalah platform baca komik online untuk penggemar manhwa, manhua, manga, dan webtoon. Temukan berbagai komik terbaru dan populer dari beragam genre seperti action, romance, fantasy, adventure, comedy, drama, thriller, dan lainnya. Nikmati pengalaman membaca komik dengan koleksi judul pilihan, update chapter terbaru, rekomendasi komik, ranking harian dan mingguan, jadwal rilis, serta komunitas pembaca. Jelajahi dunia komik favoritmu dan ikuti cerita terbaru hanya di KOMIDIL.",
+};
 
 export default async function HomePage() {
   const [top, latest, webtoon, daily, weekly, monthly, schedule] = await Promise.all([
