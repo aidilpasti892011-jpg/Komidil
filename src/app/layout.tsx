@@ -7,7 +7,7 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: { default: "KOMIDIL - Your World of Comics", template: "%s | KOMIDIL" },
   description: "KOMIDIL: baca manhwa, manhua, dan manga. Your World of Comics.",
-  verification: { google: "txFlPVbO1YcByFsQwuuuQVsA_2l9ni5tcLnbDCZKlNU" },
+  verification: { google: "txFlPVbO1YcByFsQwuuuQVsA_2l9ni5tcLnbDCZKlNU", other: { "msvalidate.01": "E4850845262421A972B23641D712CA2C" } },
   icons: { icon: "/logo.svg" },
 };
 
