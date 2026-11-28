@@ -6,7 +6,10 @@ import EmptyState from "@/components/EmptyState";
 import KomikFilters from "@/components/KomikFilters";
 import { getGenres, parseSearch, searchComics } from "@/lib/comics";
 
-export const metadata: Metadata = { title: "Daftar Komik" };
+export const metadata: Metadata = {
+  title: "Baca Komik Online — Manhwa, Manhua & Manga Terbaru",
+  description: "Jelajahi koleksi komik online di KOMIDIL. Temukan manhwa, manhua, manga, dan webtoon dari berbagai genre seperti action, romance, fantasy, adventure, comedy, drama, dan thriller. Cari komik favorit, lihat daftar komik populer, temukan judul terbaru, dan ikuti update chapter komik pilihanmu.",
+};
 
 type Props = { searchParams: Promise<Record<string, string | string[] | undefined>> };
 
