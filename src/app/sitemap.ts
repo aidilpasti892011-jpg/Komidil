@@ -21,6 +21,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const { data } = await sb
       .from("comics")
       .select("slug, updated_at")
+      .eq("is_published", true)
       .in("status", ["ongoing", "completed", "hiatus"])
       .order("updated_at", { ascending: false })
       .limit(5000);
